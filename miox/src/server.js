@@ -96,6 +96,11 @@ export default class Server extends EventEmitter {
     }
 
     async historyListener(locals){
+        if( firstEnter && locals.action === 'POP' && !locals.key ){
+            //alert('filter POP');
+            return;
+        }
+
         let removes, key = locals.key, action = locals.action;
 
         if ( ['PUSH', 'REPLACE'].indexOf(action) > -1 ){
@@ -111,6 +116,7 @@ export default class Server extends EventEmitter {
         await this.createClient(locals, removes);
     }
 
+
     async createClient(locations, removes = []){
         let action = locations.action;
         if ( action === 'REPLACE' ){
@@ -123,17 +129,23 @@ export default class Server extends EventEmitter {
         this.req = this.getClientLocations();
         this.req.method = action;
 
+        if ( action && action != 'REFRESH' ){
+            this.req.prevKey = oldKey;
+            this.req.nextKey = locations.key;
+        }
+
         /**
          * 解决第一次进入BUG
          * 第一次进入不触发路由选择
          */
-        if ( firstEnter && !this.req.query._k ){
-            return firstEnter = false;
-        }
-
-        if ( action && action != 'REFRESH' ){
-            this.req.prevKey = oldKey;
-            this.req.nextKey = locations.key;
+        if ( firstEnter ){
+            if( !this.req.query._k ){
+                return firstEnter = false;
+            }
+            else {
+                firstEnter = false;
+                this.req.nextKey = locations.key || this.req.nextKey;
+            }
         }
 
         await new Promise(resolve => {
@@ -144,6 +156,7 @@ export default class Server extends EventEmitter {
             });
         });
     }
+
 
     getClientLocations(){
         const locations = window.location;

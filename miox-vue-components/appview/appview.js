@@ -13,7 +13,7 @@ export default function(Component){
             computed.style = function(){
                 if ( this.blank ){
                     return {
-                        'padding-top': 20
+                        'padding-top': this.blank || 20
                     }
                 }
             };
@@ -24,7 +24,7 @@ export default function(Component){
         }
 
         props(props){
-            props.blank = Boolean;
+            props.blank = Number;
             props.horizontal = Boolean;
         }
     }

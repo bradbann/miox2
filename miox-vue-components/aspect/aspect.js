@@ -10,7 +10,7 @@ export default function(Component){
                 if ( this.align ){
                     cls.push('mx-text-' + this.align);
                 }
-                return cls.join(' ');
+                return cls;
             }
         }
 
